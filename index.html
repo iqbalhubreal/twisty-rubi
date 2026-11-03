@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Twisty Puzzle Studio – Cubes, Pyraminx, Skewb, Megaminx & more</title>
+<link rel="stylesheet" href="css/styles.css">
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
+</script>
+</head>
+<body>
+<div id="app">
+<aside id="panel">
+  <h1>🧩 Twisty Puzzle Studio</h1>
+
+  <section>
+    <h2>Puzzle</h2>
+    <label>Type
+      <select id="ptype">
+        <optgroup label="Cubes">
+          <option value="cube" selected>N×N×N Cube (2–50)</option>
+          <option value="cuboid">Cuboid A×B×C (e.g. 2×3×4)</option>
+        </optgroup>
+        <optgroup label="Tetrahedron">
+          <option value="pyraminx">Pyraminx (2–6 layers)</option>
+        </optgroup>
+        <optgroup label="Corner-turning">
+          <option value="skewb">Skewb</option>
+          <option value="dino">Dino Cube</option>
+          <option value="diamond">Skewb Diamond</option>
+        </optgroup>
+        <optgroup label="Octahedron">
+          <option value="fto">Face-Turning Octahedron</option>
+        </optgroup>
+        <optgroup label="Dodecahedron">
+          <option value="megaminx">Megaminx</option>
+          <option value="gigaminx">Gigaminx</option>
+        </optgroup>
+      </select>
+    </label>
+    <div id="sizeCube" class="row">Size
+      <input type="range" id="nRange" min="2" max="50" value="3">
+      <input type="number" id="nNum" min="2" max="50" value="3">
+    </div>
+    <div id="sizeCuboid" class="row" style="display:none">
+      <input type="number" id="dimA" min="1" max="30" value="2"> ×
+      <input type="number" id="dimB" min="1" max="30" value="3"> ×
+      <input type="number" id="dimC" min="1" max="30" value="4">
+    </div>
+    <div id="sizePyra" class="row" style="display:none">Layers
+      <input type="range" id="pyRange" min="2" max="6" value="3"><b id="pyVal">3</b>
+    </div>
+    <button id="btnNew" class="primary">🎲 New Random Puzzle</button>
+    <div id="pinfo" class="small" style="margin-top:6px"></div>
+  </section>
+
+  <section>
+    <h2>Actions</h2>
+    <div class="grid2">
+      <button id="btnScramble">🔀 Scramble</button>
+      <button id="btnSolve">✅ Solve</button>
+      <button id="btnReset">↺ Reset to Solved</button>
+      <button id="btnStop">⏹ Stop</button>
+    </div>
+  </section>
+
+  <section>
+    <h2>Settings</h2>
+    <div class="row">Scramble moves <input type="number" id="scrN" min="1" max="50000" value="28"></div>
+    <div>Live speed: <b id="spdLbl">6</b> turns/s</div>
+    <div class="row"><input type="range" id="spdRange" min="0" max="1000" value="195"><input type="number" id="spdNum" min="1" max="10000" value="6"></div>
+    <div class="quick" id="quick"></div>
+    <div class="small">Up to 40/s every turn is animated; above 40 turns happen in fast jumps.</div>
+    <label><input type="checkbox" id="autoSolve" checked> Auto-solve after a new puzzle</label>
+    <label><input type="checkbox" id="groupAxis" checked> Turn same-axis layers together</label>
+    <label><input type="checkbox" id="autoRot"> Slowly rotate camera</label>
+  </section>
+
+  <section>
+    <h2>Recording</h2>
+    <label><input type="checkbox" id="natural" checked> Natural motion while recording</label>
+    <div>Recording speed: <b id="recSpdLbl">5</b> turns/s</div>
+    <input type="range" id="recSpd" min="1" max="30" value="5">
+    <label><input type="checkbox" id="cine" checked> Cinematic camera drift</label>
+    <label><input type="checkbox" id="autoRec"> Auto-record each solve</label>
+    <button id="btnRec">⏺ Start Recording</button>
+    <button id="btnRecAll" class="primary">🎬 Record Scramble + Solve</button>
+    <div class="small" style="margin-top:6px">Keep this tab visible while recording. Video only shows the puzzle.</div>
+  </section>
+
+  <section id="status"></section>
+</aside>
+
+<main id="stage">
+  <div id="hud"></div>
+  <div id="rec">● REC <span id="recTime">00:00</span></div>
+  <div id="toast"></div>
+</main>
+</div>
+
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
