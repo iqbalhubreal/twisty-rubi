@@ -40,8 +40,37 @@ let history = [];             // all applied moves {g,r,k}
 let queue = [], qi = 0, anim = null, accum = 0, queueActive = false, onDone = null;
 let seqToken = 0, phase = '', runTotal = 0;
 let dirtyFlag = new Uint8Array(0), dirtyList = [], needInst = false;
-let liveTps = 6, recTps = 5;
-let recorder = null, recStart = 0;
+let liveTps=6, recTps=5;
+let recorder=null, recStart=0;
+
+/* ---------------- ASMR nature audio ---------------- */
+let audio=null, natureBed=null, lastNatureCue=0;
+function ensureAudio(){
+  try{
+    if(!audio){
+      const Ctx=window.AudioContext||window.webkitAudioContext; audio=new Ctx();
+      audio.master=audio.createGain(); audio.master.gain.value=+$('natureVol').value/100; audio.master.connect(audio.destination);
+    }
+    if(audio.state==='suspended') audio.resume();
+    if($('nature').checked) startNature();
+  }catch(e){ /* audio is optional */ }
+}
+function startNature(){
+  if(!audio||natureBed) return;
+  const src=audio.createBufferSource(), buf=audio.createBuffer(1,audio.sampleRate*2,audio.sampleRate), data=buf.getChannelData(0);
+  for(let i=0;i<data.length;i++) data[i]=Math.random()*2-1;
+  src.buffer=buf; src.loop=true;
+  const filter=audio.createBiquadFilter(), gain=audio.createGain(); filter.type='lowpass'; filter.frequency.value=620; filter.Q.value=0.5;
+  gain.gain.value=0.016; src.connect(filter); filter.connect(gain); gain.connect(audio.master); src.start(); natureBed={src};
+}
+function stopNature(){ if(natureBed){ natureBed.src.stop(); natureBed=null; } }
+function playNatureCue(){
+  if(!$('nature').checked||!audio||audio.state!=='running') return;
+  const now=audio.currentTime; if(now-lastNatureCue<0.08) return; lastNatureCue=now;
+  const o=audio.createOscillator(), g=audio.createGain(); o.type='sine'; o.frequency.setValueAtTime(360+Math.random()*160,now);
+  o.frequency.exponentialRampToValueAtTime(180,now+0.2); g.gain.setValueAtTime(0.0001,now); g.gain.exponentialRampToValueAtTime(0.03,now+0.01);
+  g.gain.exponentialRampToValueAtTime(0.0001,now+0.24); o.connect(g); g.connect(audio.master); o.start(now); o.stop(now+0.26);
+}
 
 const LAT = new Int32Array(129*129*129);
 const S1 = 129*129, S2 = 129, BASE = 64*S1 + 64*S2 + 64, STR = [S1, S2, 1];
@@ -461,7 +490,7 @@ function animFrame(t){
     for (const id of it.mem){ _q2.multiplyQuaternions(_q, P.pieces[id].q); showPiece(id,_q2); }
   }
 }
-function finishAnim(){ for (const it of anim.items) applyState(it.m, it.mem); anim=null; }
+function finishAnim(){ for (const it of anim.items) applyState(it.m, it.mem); anim=null; playNatureCue(); }
 
 function step(dt){
   const animated = recNatural() || liveTps<=40;
@@ -601,6 +630,9 @@ $('spdRange').addEventListener('input',()=>setSpeed(s2t(+$('spdRange').value)));
 $('spdNum').addEventListener('change',()=>setSpeed($('spdNum').value));
 for (const q of [2,10,30,100,1000,10000]){ const b=document.createElement('button'); b.textContent=q.toLocaleString(); b.onclick=()=>setSpeed(q); $('quick').appendChild(b); }
 $('recSpd').addEventListener('input',()=>{ recTps=+$('recSpd').value; $('recSpdLbl').textContent=recTps; });
+$('nature').addEventListener('change', e => e.target.checked ? (ensureAudio(), startNature()) : stopNature());
+$('natureVol').addEventListener('input', e => { if(audio) audio.master.gain.value=+e.target.value/100; });
+document.addEventListener('pointerdown', ensureAudio);
 
 $('btnNew').onclick=newPuzzle;
 $('btnScramble').onclick=scramble;
