@@ -44,7 +44,7 @@ let liveTps=6, recTps=5;
 let recorder=null, recStart=0;
 
 /* ---------------- ASMR nature audio ---------------- */
-let audio=null, natureBed=null, lastNatureCue=0;
+let audio=null, natureBed=null, recDest=null, lastNatureCue=0;
 function ensureAudio(){
   try{
     if(!audio){
@@ -582,7 +582,12 @@ function pickMime(){
 function startRec(){
   if (recorder) return;
   if (!window.MediaRecorder || !renderer.domElement.captureStream){ toast('Recording is not supported in this browser'); return; }
+  ensureAudio();
   const stream=renderer.domElement.captureStream(60), mime=pickMime(), chunks=[];
+  if(audio){
+    if(!recDest){ recDest=audio.createMediaStreamDestination(); audio.master.connect(recDest); }
+    recDest.stream.getAudioTracks().forEach(track=>stream.addTrack(track));
+  }
   const r=new MediaRecorder(stream, mime ? { mimeType:mime, videoBitsPerSecond:12e6 } : { videoBitsPerSecond:12e6 });
   r.ondataavailable=e=>{ if (e.data && e.data.size) chunks.push(e.data); };
   const slug=P.slug;
